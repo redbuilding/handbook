@@ -1,0 +1,32 @@
+# Environment variables
+.env
+.env-sample
+
+# Generated handbooks and log
+handbook*
+
+# Setup
+notes.txt
+
+# Specific Python file
+main-doesnt-work-w-gradio.py
+
+# Python cache
+__pycache__/
+
+# Virtual environment
+unified/
+
+# General Python virtual environment folders (just in case)
+venv/
+env/
+*.pyc
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE specific files (optional, but often helpful)
+.vscode/
+.idea/
+*.swp

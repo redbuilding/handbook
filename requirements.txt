@@ -1,0 +1,6 @@
+requests
+python-dotenv
+openai
+anthropic
+termcolor
+pydantic
