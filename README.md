@@ -50,7 +50,7 @@ python main.py
 This application uses the following language models:
 - gpt-4o-mini (via OpenAI)
 - claude-3-5-sonnet-20240620 (via Anthropic)
-- perplexity/llama-3.1-sonar-large-128k-online (via OpenRouter)
+- google/gemini-flash-1.5 (via OpenRouter)
 
 The estimated cost to generate one handbook is approximately $0.14 USD. The process takes a couple minutes to complete.
 
