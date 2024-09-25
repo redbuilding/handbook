@@ -35,7 +35,7 @@ class UnifiedApis:
         elif self.provider == "anthropic":
             self.model = model or "claude-3-5-sonnet-20240620"
         elif self.provider == "openrouter":
-            self.model = model or "perplexity/llama-3.1-sonar-large-128k-online"
+            self.model = model or "google/gemini-flash-1.5"
         self.name = name
         self.api_key = api_key or self._get_api_key()
         self.history = []

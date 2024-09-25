@@ -9,6 +9,7 @@ import requests
 import time
 import json
 import re
+import ast
 
 # Load environment variables
 load_dotenv()
@@ -209,6 +210,7 @@ class HandbookGenerator:
         - **Conciseness:** You convey messages succinctly, avoiding unnecessary fluff.
         - **Tone and Voice:** You adapt tone to align with the topic and the audience's expectations.
         - **High Degree of Burstiness and Perplexity:** Use mostly very short paragraphs and sentences to ensure readability. The content should be straightforward and easy to understand.
+        - **Formatting Code** If code is presented in the handbook content, place it inside <code> </code> tags.
         """
         return self.retry_with_exponential_backoff(lambda: llm_apis[llm].chat(chapter_prompt))
 
@@ -216,8 +218,9 @@ class HandbookGenerator:
         """
         Standardizes the formatting of the handbook content.
 
-        This method processes the content of each chapter, converts any JSON to Markdown,
-        ensures proper header formatting, and combines all chapters into the final handbook content.
+        This method processes the content of each chapter, converts any JSON-like
+        strings to Markdown, ensures proper header formatting, and combines all
+        chapters into the final handbook content.
 
         Returns:
             None: Updates the `final_handbook_content` attribute with the formatted content.
@@ -228,16 +231,25 @@ class HandbookGenerator:
             content = chapter.get('content', 'No content available.')
             formatted_content += f"# {title}\n\n{content}\n\n"
 
-        # Convert JSON to Markdown
+        # Convert JSON-like strings to Markdown
         json_pattern = r'\{[\s\S]*?\}'
         def json_to_markdown(match):
             try:
-                data = json.loads(match.group(0))
-                markdown = ""
-                for key, value in data.items():
-                    markdown += f"**{key}**: {value}\n"
-                return markdown
-            except json.JSONDecodeError:
+                data = ast.literal_eval(match.group(0))
+                if isinstance(data, dict):
+                    markdown = ""
+                    for key, value in data.items():
+                        if key == 'title':
+                            continue  # Skip the 'title' key
+                        if isinstance(value, list):
+                            for item in value:
+                                markdown += f"{item}\n\n"
+                        else:
+                            markdown += f"{value}\n\n"
+                    return markdown
+                else:
+                    return match.group(0)
+            except Exception:
                 return match.group(0)
 
         formatted_content = re.sub(json_pattern, json_to_markdown, formatted_content)
@@ -246,7 +258,9 @@ class HandbookGenerator:
         lines = formatted_content.split('\n')
         for i, line in enumerate(lines):
             if line.strip() and not line.strip().startswith('#'):
-                lines[i] = f"### {line}"
+                # Avoid adding '###' to existing Markdown headers
+                if not re.match(r'^(#+\s)', line.strip()):
+                    lines[i] = f"### {line.strip()}"
 
         self.final_handbook_content = '\n'.join(lines)
 
