@@ -4,3 +4,7 @@ openai
 anthropic
 termcolor
 pydantic
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+markdown2

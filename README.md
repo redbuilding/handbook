@@ -43,7 +43,7 @@ python main.py
 
 3. The application will generate the handbook content and provide options for feedback and refinement.
 
-4. Once satisfied, choose to finish and save the handbook. The output will be saved as a Markdown file in the current directory.
+4. Once satisfied, choose to finish and save the handbook. The output can be saved as a Markdown file in the current directory, or uploaded to your Google Docs with your permission. 
 
 ## Models Used
 

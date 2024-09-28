@@ -6,7 +6,11 @@
 handbook*
 
 # Setup
-notes.txt
+notes*
+credentials*
+token*
+client*
+test*
 
 # Specific Python file
 main-doesnt-work-w-gradio.py
