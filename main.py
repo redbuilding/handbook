@@ -117,6 +117,7 @@ class HandbookGenerator:
         logger.debug(f"Starting web search for query: {query}")
         results = []
         retries = 0
+        self.search_urls = []  # Initialize the list to store URLs
 
         while retries < max_retries:
             try:
@@ -130,6 +131,7 @@ class HandbookGenerator:
                         snippet = item.get("snippet", "")
                         if title and link and snippet:
                             results.append({"title": title, "link": link, "snippet": snippet})
+                            self.search_urls.append(link)  # Store the URL
                 logger.info(f"Web search completed for query: {query} with {len(results)} results")
                 return results
             except requests.exceptions.HTTPError as e:
@@ -229,8 +231,6 @@ class HandbookGenerator:
         - **High Degree of Burstiness and Perplexity:** Use mostly very short paragraphs and sentences to ensure readability. The content should be straightforward and easy to understand.
         - **Formatting Code** If code is presented in the handbook content, place it inside <code> </code> tags.
         """
-        # return self.retry_with_exponential_backoff(lambda: llm_apis[llm].chat(chapter_prompt))
-
         try:
             result = self.retry_with_exponential_backoff(lambda: llm_apis[llm].chat(chapter_prompt))
             logging.info(f"Generate chapter result type: {type(result)}")
@@ -361,6 +361,15 @@ class HandbookGenerator:
             # Unknown content type, convert to string
             return str(content) + "\n\n"
 
+    def format_url_list(self):
+        if not hasattr(self, 'search_urls') or not self.search_urls:
+            return "No URLs available from the initial web search."
+
+        url_list = "## Web Search References\n\n"
+        for i, url in enumerate(self.search_urls, 1):
+            url_list += f"{i}. {url}\n"
+        return url_list
+
     def standardize_formatting(self):
         """
         Standardizes the formatting of the handbook content.
@@ -407,6 +416,9 @@ class HandbookGenerator:
 
             # Add chapter title as H2
             formatted_content += f"## {title}\n\n{content}\n\n"
+
+        # Add the URL list at the end
+        formatted_content += "\n\n" + self.format_url_list()
 
         self.final_handbook_content = formatted_content
 
@@ -592,9 +604,10 @@ class HandbookGenerator:
             self.print_working_message()
             # Step 1: Web Search for Contextual Information
             logging.info(f"Starting web search for topic: {self.topic}")
-            self.context_summary = self.search_web(self.topic)  # Pass topic as a string
-            if not self.context_summary:  # If web search fails or returns no results
+            search_results = self.search_web(self.topic)
+            if not search_results:
                 logging.warning("No context gathered from web search. Proceeding with default outline.")
+            self.context_summary = json.dumps(search_results)  # Convert to string if needed
 
             # Step 2: Generate Initial Handbook Structure
             logging.info(f"Generating initial structure for the handbook on: {self.topic}")
@@ -780,6 +793,11 @@ class HandbookGenerator:
             # Convert Markdown to HTML
             with open(output_filename, 'r', encoding='utf-8') as f:
                 markdown_text = f.read()
+
+            # Ensure the URL list is included
+            if "## Web Search References" not in markdown_text:
+                markdown_text += "\n\n" + self.format_url_list()
+
             html_content = markdown2.markdown(markdown_text)
             html_filename = output_filename.replace('.md', '.html')
             with open(html_filename, 'w', encoding='utf-8') as f:
